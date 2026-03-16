@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lock In — Habit Leveling</title>
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #131a2e;
+      --panel-2: #18213a;
+      --text: #eef2ff;
+      --muted: #9aa5ce;
+      --accent: #7c3aed;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+      --border: #26304f;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #0b1020 0%, #0a1227 100%);
+      color: var(--text);
+      min-height: 100%;
+    }
+
+    body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      letter-spacing: -0.03em;
+    }
+
+    .title-wrap p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    .install-tip {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)), var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 700px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .level-badge {
+      min-width: 135px;
+      min-height: 135px;
+      border-radius: 28px;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, rgba(124,58,237,.35), rgba(124,58,237,.06)), var(--panel-2);
+      border: 1px solid rgba(124,58,237,.35);
+      text-align: center;
+      padding: 10px;
+    }
+
+    .level-badge .big {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .level-badge .small {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+
+    .xp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+
+    .progress {
+      width: 100%;
+      height: 16px;
+      background: #0a0f1c;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7c3aed, #22c55e);
+      transition: width .35s ease;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .stat {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .stat .label {
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-bottom: 6px;
+    }
+
+    .stat .value {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2, .section-title h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .muted { color: var(--muted); }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select, button {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b1120;
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+
+    input::placeholder { color: #7f8bb4; }
+
+    input, select { flex: 1; min-width: 130px; }
+
+    button {
+      cursor: pointer;
+      transition: transform .08s ease, opacity .2s ease, background .2s ease;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)), #111a2f;
+    }
+
+    button:hover { opacity: 0.95; }
+    button:active { transform: translateY(1px) scale(.99); }
+    button.primary {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--accent);
+      border-color: rgba(255,255,255,.12);
+    }
+
+    button.success { background: #13341f; border-color: #245137; }
+    button.danger { background: #35141a; border-color: #5f222d; }
+    button.ghost { background: transparent; }
+
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .habit {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .habit {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .habit-main {
+      display: flex;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .checkbox {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b1120;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+
+    .checkbox.done {
+      background: #14351f;
+      border-color: #2f7d49;
+    }
+
+    .habit-title {
+      margin: 0;
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+
+    .habit-meta {
+      margin-top: 5px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      background: #10192f;
+      color: var(--muted);
+    }
+
+    .pill.easy { color: #93c5fd; }
+    .pill.medium { color: #fcd34d; }
+    .pill.hard { color: #fca5a5; }
+
+    .habit-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+      background: rgba(255,255,255,.01);
+    }
+
+    .reward-list, .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reward, .history-item {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      padding: 12px;
+    }
+
+    .reward.locked {
+      opacity: 0.6;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #12203d;
+      border: 1px solid #26457d;
+      box-shadow: var(--shadow);
+      max-width: 320px;
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s ease;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.9rem;
+    }
+
+    .tiny {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title-wrap">
+      <h1>Lock In</h1>
+      <p>Habit quests, XP, levels, streaks — all saved locally on your device.</p>
+    </div>
+    <div class="install-tip">Add this page to your home screen for an app-like feel.</div>
+  </div>
+
+  <section class="card hero">
+    <div>
+      <div class="xp-row">
+        <strong id="rankTitle">Level 1 · Recruit</strong>
+        <span class="muted" id="xpText">0 / 100 XP</span>
+      </div>
+      <div class="progress" aria-label="XP Progress">
+        <span id="xpBar"></span>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Total XP</div>
+          <div class="value" id="totalXp">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Streak</div>
+          <div class="value" id="streak">0 🔥</div>
+        </div>
+        <div class="stat">
+          <div class="label">Completed Today</div>
+          <div class="value" id="doneToday">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Habits</div>
+          <div class="value" id="habitCount">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="level-badge">
+      <div>
+        <div class="big" id="levelBadge">1</div>
+        <div class="small">Current Level</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <main>
+      <section class="card">
+        <div class="section-title">
+          <h2>Create Habit Quest</h2>
+          <span class="tiny">Easy to host on GitHub Pages</span>
+        </div>
+        <div class="row">
+          <input id="habitName" type="text" placeholder="Habit name (ex: Write 500 words)" />
+          <select id="habitDifficulty">
+            <option value="easy">Easy · 10 XP</option>
+            <option value="medium" selected>Medium · 20 XP</option>
+            <option value="hard">Hard · 35 XP</option>
+          </select>
+          <select id="habitCategory">
+            <option>Body</option>
+            <option>Mind</option>
+            <option>Work</option>
+            <option>Discipline</option>
+            <option>Creativity</option>
+          </select>
+          <button class="primary" id="addHabitBtn">Add Habit</button>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="section-title">
+          <h2>Today's Quests</h2>
+          <div class="row">
+            <button id="resetTodayBtn" class="ghost">Reset Today</button>
+            <button id="clearAllBtn" class="danger">Clear All</button>
+          </div>
+        </div>
+        <div id="habitList" class="habit-list"></div>
+      </section>
+    </main>
+
+    <aside>
+      <section class="card">
+        <div class="section-title">
+          <h3>Unlocks</h3>
+          <span class="tiny">Motivation rewards</span>
+        </div>
+        <div id="rewardList" class="reward-list"></div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="section-title">
+          <h3>Recent Activity</h3>
+          <span class="tiny">Last 8 completions</span>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </aside>
+  </div>
+
+  <p class="footer-note">Everything is stored in your browser with localStorage. No account needed.</p>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'lockin-habit-rpg-v1';
+
+    const XP_MAP = {
+      easy: 10,
+      medium: 20,
+      hard: 35,
+    };
+
+    const LEVEL_TITLES = [
+      'Recruit', 'Focused', 'Disciplined', 'Relentless', 'Sharpened',
+      'Elite', 'Ascended', 'Locked In', 'Unstoppable', 'Legend'
+    ];
+
+    const REWARDS = [
+      { level: 2, title: 'Bronze Focus', desc: 'You started building momentum.' },
+      { level: 3, title: 'Streak Shield', desc: 'Miss one day mentally, not forever.' },
+      { level: 5, title: 'Silver Discipline', desc: 'Consistency is becoming your identity.' },
+      { level: 7, title: 'Deep Work Aura', desc: 'Your grind is visible now.' },
+      { level: 10, title: 'Legend Rank', desc: 'You are no longer negotiating with excuses.' },
+    ];
+
+    const els = {
+      habitName: document.getElementById('habitName'),
+      habitDifficulty: document.getElementById('habitDifficulty'),
+      habitCategory: document.getElementById('habitCategory'),
+      addHabitBtn: document.getElementById('addHabitBtn'),
+      habitList: document.getElementById('habitList'),
+      rewardList: document.getElementById('rewardList'),
+      historyList: document.getElementById('historyList'),
+      totalXp: document.getElementById('totalXp'),
+      streak: document.getElementById('streak'),
+      doneToday: document.getElementById('doneToday'),
+      habitCount: document.getElementById('habitCount'),
+      xpBar: document.getElementById('xpBar'),
+      xpText: document.getElementById('xpText'),
+      levelBadge: document.getElementById('levelBadge'),
+      rankTitle: document.getElementById('rankTitle'),
+      toast: document.getElementById('toast'),
+      resetTodayBtn: document.getElementById('resetTodayBtn'),
+      clearAllBtn: document.getElementById('clearAllBtn'),
+    };
+
+    const todayKey = () => new Date().toISOString().slice(0, 10);
+
+    function defaultState() {
+      return {
+        habits: [
+          { id: crypto.randomUUID(), name: 'Drink water', difficulty: 'easy', category: 'Body', active: true },
+          { id: crypto.randomUUID(), name: 'Read 10 pages', difficulty: 'medium', category: 'Mind', active: true },
+          { id: crypto.randomUUID(), name: 'Write for 30 minutes', difficulty: 'hard', category: 'Creativity', active: true },
+        ],
+        completions: {},
+        history: [],
+        totalXp: 0,
+        streak: 0,
+        longestStreak: 0,
+        lastCompletionDate: null,
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultState();
+        return { ...defaultState(), ...JSON.parse(raw) };
+      } catch {
+        return defaultState();
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function xpForNextLevel(level) {
+      return 100 + (level - 1) * 50;
+    }
+
+    function getLevelFromXp(totalXp) {
+      let level = 1;
+      let remaining = totalXp;
+      while (remaining >= xpForNextLevel(level)) {
+        remaining -= xpForNextLevel(level);
+        level += 1;
+      }
+      return { level, currentXp: remaining, nextXp: xpForNextLevel(level) };
+    }
+
+    function getRankTitle(level) {
+      return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
+    }
+
+    function isDoneToday(habitId) {
+      return !!(state.completions[todayKey()] || {})[habitId];
+    }
+
+    function updateStreakOnCompletion() {
+      const today = todayKey();
+      if (state.lastCompletionDate === today) return;
+
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+      if (state.lastCompletionDate === yesterdayKey) {
+        state.streak += 1;
+      } else {
+        state.streak = 1;
+      }
+
+      state.lastCompletionDate = today;
+      if (state.streak > state.longestStreak) state.longestStreak = state.streak;
+    }
+
+    function countDoneToday() {
+      return Object.keys(state.completions[todayKey()] || {}).length;
+    }
+
+    function maybeAwardDailyBonus() {
+      const activeHabits = state.habits.filter(h => h.active);
+      if (!activeHabits.length) return 0;
+      const done = countDoneToday();
+      const today = todayKey();
+      const bonusFlag = `bonus-${today}`;
+      if (done === activeHabits.length && !(state.completions[today] || {})[bonusFlag]) {
+        state.completions[today][bonusFlag] = true;
+        state.totalXp += 25;
+        state.history.unshift({
+          id: crypto.randomUUID(),
+          text: 'Daily full clear bonus',
+          xp: 25,
+          date: new Date().toLocaleString(),
+        });
+        return 25;
+      }
+      return 0;
+    }
+
+    function completeHabit(id) {
+      if (!state.completions[todayKey()]) state.completions[todayKey()] = {};
+      if (state.completions[todayKey()][id]) return;
+
+      const habit = state.habits.find(h => h.id === id);
+      if (!habit) return;
+
+      const before = getLevelFromXp(state.totalXp).level;
+      const baseXp = XP_MAP[habit.difficulty] || 10;
+      updateStreakOnCompletion();
+      const streakBonus = Math.max(0, Math.min(state.streak * 2, 20));
+      const gain = baseXp + streakBonus;
+
+      state.completions[todayKey()][id] = true;
+      state.totalXp += gain;
+      state.history.unshift({
+        id: crypto.randomUUID(),
+        text: habit.name,
+        xp: gain,
+        date: new Date().toLocaleString(),
+      });
+
+      const dailyBonus = maybeAwardDailyBonus();
+      const after = getLevelFromXp(state.totalXp).level;
+      saveState();
+      render();
+
+      let msg = `+${gain} XP · ${habit.name}`;
+      if (dailyBonus) msg += ` · +${dailyBonus} daily bonus`;
+      if (after > before) msg += ` · LEVEL UP to ${after}!`;
+      showToast(msg);
+    }
+
+    function deleteHabit(id) {
+      state.habits = state.habits.filter(h => h.id !== id);
+      saveState();
+      render();
+      showToast('Habit removed');
+    }
+
+    function addHabit() {
+      const name = els.habitName.value.trim();
+      if (!name) {
+        showToast('Enter a habit name first');
+        return;
+      }
+      state.habits.unshift({
+        id: crypto.randomUUID(),
+        name,
+        difficulty: els.habitDifficulty.value,
+        category: els.habitCategory.value,
+        active: true,
+      });
+      els.habitName.value = '';
+      saveState();
+      render();
+      showToast('Habit added');
+    }
+
+    function resetToday() {
+      state.completions[todayKey()] = {};
+      saveState();
+      render();
+      showToast('Today reset');
+    }
+
+    function clearAll() {
+      const confirmed = confirm('Clear all habits, XP, streaks, and history?');
+      if (!confirmed) return;
+      state = defaultState();
+      saveState();
+      render();
+      showToast('All data cleared');
+    }
+
+    function renderHabits() {
+      const habits = state.habits.filter(h => h.active);
+      els.habitList.innerHTML = '';
+      if (!habits.length) {
+        els.habitList.innerHTML = '<div class="empty">No habits yet. Add your first quest above.</div>';
+        return;
+      }
+
+      for (const habit of habits) {
+        const done = isDoneToday(habit.id);
+        const xp = XP_MAP[habit.difficulty] || 10;
+        const div = document.createElement('div');
+        div.className = 'habit';
+        div.innerHTML = `
+          <div class="habit-main">
+            <button class="checkbox ${done ? 'done' : ''}" aria-label="Complete habit">${done ? '✓' : ''}</button>
+            <div>
+              <p class="habit-title">${escapeHtml(habit.name)}</p>
+              <div class="habit-meta">
+                <span class="pill ${habit.difficulty}">${capitalize(habit.difficulty)} · ${xp} XP</span>
+                <span class="pill">${escapeHtml(habit.category)}</span>
+                ${done ? '<span class="pill">Completed today</span>' : ''}
+              </div>
+            </div>
+          </div>
+          <div class="habit-actions">
+            <button class="success complete-btn" ${done ? 'disabled' : ''}>${done ? 'Done' : 'Complete'}</button>
+            <button class="danger delete-btn">Delete</button>
+          </div>
+        `;
+        div.querySelector('.checkbox').addEventListener('click', () => completeHabit(habit.id));
+        div.querySelector('.complete-btn').addEventListener('click', () => completeHabit(habit.id));
+        div.querySelector('.delete-btn').addEventListener('click', () => deleteHabit(habit.id));
+        els.habitList.appendChild(div);
+      }
+    }
+
+    function renderRewards(level) {
+      els.rewardList.innerHTML = REWARDS.map(reward => `
+        <div class="reward ${level >= reward.level ? '' : 'locked'}">
+          <strong>Level ${reward.level} · ${escapeHtml(reward.title)}</strong>
+          <div class="tiny">${escapeHtml(reward.desc)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderHistory() {
+      els.historyList.innerHTML = '';
+      const items = state.history.slice(0, 8);
+      if (!items.length) {
+        els.historyList.innerHTML = '<div class="empty">No activity yet. Complete a habit to start building momentum.</div>';
+        return;
+      }
+      for (const item of items) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+          <strong>${escapeHtml(item.text)}</strong>
+          <div class="tiny">+${item.xp} XP · ${escapeHtml(item.date)}</div>
+        `;
+        els.historyList.appendChild(div);
+      }
+    }
+
+    function renderHeader() {
+      const { level, currentXp, nextXp } = getLevelFromXp(state.totalXp);
+      const pct = Math.max(0, Math.min(100, (currentXp / nextXp) * 100));
+      els.totalXp.textContent = state.totalXp;
+      els.streak.textContent = `${state.streak} 🔥`;
+      els.doneToday.textContent = countDoneToday();
+      els.habitCount.textContent = state.habits.filter(h => h.active).length;
+      els.xpBar.style.width = pct + '%';
+      els.xpText.textContent = `${currentXp} / ${nextXp} XP`;
+      els.levelBadge.textContent = level;
+      els.rankTitle.textContent = `Level ${level} · ${getRankTitle(level)}`;
+      renderRewards(level);
+    }
+
+    function render() {
+      renderHeader();
+      renderHabits();
+      renderHistory();
+    }
+
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    els.addHabitBtn.addEventListener('click', addHabit);
+    els.habitName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addHabit();
+    });
+    els.resetTodayBtn.addEventListener('click', resetToday);
+    els.clearAllBtn.addEventListener('click', clearAll);
+
+    render();
+  </script>
+</body>
+</html>
